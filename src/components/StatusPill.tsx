@@ -1,4 +1,5 @@
 import type { Status } from "../types/status";
+import { SessionDot } from "./SessionDot";
 import "../styles/status-pill.css";
 
 interface StatusPillProps {
@@ -28,9 +29,12 @@ const labelMap: Record<Status, string> = {
 
 export function StatusPill({ status, glow }: StatusPillProps) {
   return (
-    <div className={`pill ${glow ? "neon-glow" : ""} ${status === "busy" ? "neon-busy" : ""}`}>
-      <span className={dotClassMap[status] ?? "dot searching"} />
-      <span className="label">{labelMap[status] ?? "Searching..."}</span>
+    <div className="pill-row">
+      <div className={`pill ${glow ? "neon-glow" : ""} ${status === "busy" ? "neon-busy" : ""}`}>
+        <span className={dotClassMap[status] ?? "dot searching"} />
+        <span className="label">{labelMap[status] ?? "Searching..."}</span>
+      </div>
+      <SessionDot />
     </div>
   );
 }

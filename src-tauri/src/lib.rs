@@ -17,7 +17,7 @@ use std::sync::{Arc, Mutex};
 use tauri::{Emitter, Manager};
 use tauri::menu::{MenuBuilder, SubmenuBuilder, PredefinedMenuItem, MenuItemBuilder};
 
-use crate::state::AppState;
+use crate::state::{AppState, SessionInfo};
 
 const VISIT_DURATION_SECS: u64 = 15;
 
@@ -29,6 +29,18 @@ fn get_logs() -> Vec<logger::LogEntry> {
 #[tauri::command]
 fn clear_logs() {
     logger::clear_logs();
+}
+
+#[tauri::command]
+fn get_sessions(state: tauri::State<'_, Arc<Mutex<AppState>>>) -> Vec<SessionInfo> {
+    let st = state.lock().unwrap();
+    st.sessions.iter().map(|(pid, s)| SessionInfo {
+        pid: *pid,
+        title: if s.title.is_empty() {
+            if *pid == 0 { "Claude Code".into() } else { format!("PID {}", pid) }
+        } else { s.title.clone() },
+        ui_state: s.ui_state.clone(),
+    }).collect()
 }
 
 #[tauri::command]
@@ -171,7 +183,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![start_visit, get_logs, clear_logs, open_superpower, scenario_override, updater::update_now, updater::skip_version])
+        .invoke_handler(tauri::generate_handler![start_visit, get_logs, clear_logs, get_sessions, open_superpower, scenario_override, updater::update_now, updater::skip_version])
         .setup(|app| {
             crate::app_log!("[app] starting Ani-Mime v{}", env!("CARGO_PKG_VERSION"));
 
